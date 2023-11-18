@@ -1,0 +1,41 @@
+name: Rust
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Clippy
+      run: cargo clippy -- -D warnings
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Format
+      run: cargo fmt --check
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Docs
+      run: RUSTDOCFLAGS="-D warnings" cargo doc
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo test --no-run
+    - name: Test
+      run: cargo test --verbose -- --nocapture
