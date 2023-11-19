@@ -1,5 +1,7 @@
 # devs
 
+[![Rust workflow badge](https://github.com/jwnrt/devs/actions/workflows/rust.yml/badge.svg)](https://github.com/jwnrt/devs/actions/workflows/rust.yml)
+
 Rust library for discovering and inspecting devices on Linux similarly to
 [libudev] or libsystemd's [sd-device].
 
