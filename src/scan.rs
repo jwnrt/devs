@@ -5,23 +5,26 @@ core::compile_error!("unsupported platform");
 
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
+use crate::Device;
+
+/// Connected device scanner.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Scanner {
-    device_paths: Vec<PathBuf>,
+    devices: Vec<Device>,
 }
 
 impl Scanner {
     /// Scan the Linux sysfs for devices.
-    pub fn scan() -> io::Result<Vec<PathBuf>> {
+    pub fn scan() -> io::Result<Vec<Device>> {
         let mut scanner = Scanner::default();
 
         scanner.scan_bus()?;
         scanner.scan_class()?;
         scanner.scan_block()?;
 
-        Ok(scanner.device_paths)
+        Ok(scanner.devices)
     }
 
     /// Scan the `/sys/bus/` directory for devices and print their sysfs paths.
@@ -33,9 +36,9 @@ impl Scanner {
 
             for device in fs::read_dir(&devices)? {
                 let device_link = device?.path().read_link()?;
-                let device = devices.join(device_link).canonicalize()?;
+                let device_path = devices.join(device_link).canonicalize()?;
 
-                self.device_paths.push(device);
+                self.devices.push(device_path.into());
             }
         }
 
@@ -57,9 +60,9 @@ impl Scanner {
                 }
 
                 let device_link = device_path.read_link()?;
-                let device = devices.join(device_link).canonicalize()?;
+                let device_path = devices.join(device_link).canonicalize()?;
 
-                self.device_paths.push(device);
+                self.devices.push(device_path.into());
             }
         }
 
@@ -72,9 +75,9 @@ impl Scanner {
 
         for device in fs::read_dir(PATH)? {
             let device_link = device?.path().read_link()?;
-            let device = Path::new(PATH).join(device_link).canonicalize()?;
+            let device_path = Path::new(PATH).join(device_link).canonicalize()?;
 
-            self.device_paths.push(device);
+            self.devices.push(device_path.into());
         }
 
         Ok(())
