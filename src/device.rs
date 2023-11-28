@@ -1,5 +1,6 @@
 //! This module deals with handles to connected devices.
 
+use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 
 /// Handle for a connected device.
@@ -14,6 +15,13 @@ pub struct Device {
 impl From<PathBuf> for Device {
     fn from(sysfs_path: PathBuf) -> Self {
         Self { sysfs_path }
+    }
+}
+
+#[cfg(target_os = "linux")]
+impl Hash for Device {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.sysfs_path.hash(state);
     }
 }
 

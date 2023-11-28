@@ -3,6 +3,7 @@
 #[cfg(not(target_os = "linux"))]
 core::compile_error!("unsupported platform");
 
+use std::collections::HashSet;
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -12,7 +13,7 @@ use crate::Device;
 /// Connected device scanner.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Scanner {
-    devices: Vec<Device>,
+    devices: HashSet<Device>,
 }
 
 impl Scanner {
@@ -24,7 +25,8 @@ impl Scanner {
         scanner.scan_class()?;
         scanner.scan_block()?;
 
-        Ok(scanner.devices)
+        let devices = scanner.devices.into_iter().collect();
+        Ok(devices)
     }
 
     /// Scan the `/sys/bus/` directory for devices and print their sysfs paths.
@@ -38,7 +40,7 @@ impl Scanner {
                 let device_link = device?.path().read_link()?;
                 let device_path = devices.join(device_link).canonicalize()?;
 
-                self.devices.push(device_path.into());
+                self.devices.insert(device_path.into());
             }
         }
 
@@ -62,7 +64,7 @@ impl Scanner {
                 let device_link = device_path.read_link()?;
                 let device_path = devices.join(device_link).canonicalize()?;
 
-                self.devices.push(device_path.into());
+                self.devices.insert(device_path.into());
             }
         }
 
@@ -77,7 +79,7 @@ impl Scanner {
             let device_link = device?.path().read_link()?;
             let device_path = Path::new(PATH).join(device_link).canonicalize()?;
 
-            self.devices.push(device_path.into());
+            self.devices.insert(device_path.into());
         }
 
         Ok(())
