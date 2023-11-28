@@ -6,9 +6,15 @@ core::compile_error!("unsupported platform");
 use std::collections::HashSet;
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::PathBuf;
 
 use crate::Device;
+
+const SYSFS_PATH: &str = if cfg!(test) {
+    concat!(env!("CARGO_MANIFEST_DIR"), "/tests/sys")
+} else {
+    "/sys"
+};
 
 /// Connected device scanner.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -31,9 +37,9 @@ impl Scanner {
 
     /// Scan the `/sys/bus/` directory for devices and print their sysfs paths.
     fn scan_bus(&mut self) -> io::Result<()> {
-        const PATH: &str = "/sys/bus";
+        let path: PathBuf = [SYSFS_PATH, "bus"].iter().collect();
 
-        for subsys in fs::read_dir(PATH)? {
+        for subsys in fs::read_dir(path)? {
             let devices = subsys?.path().join("devices");
 
             for device in fs::read_dir(&devices)? {
@@ -49,9 +55,9 @@ impl Scanner {
 
     /// Scan the `/sys/class/` directory for devices and print their sysfs paths.
     fn scan_class(&mut self) -> io::Result<()> {
-        const PATH: &str = "/sys/class";
+        let path: PathBuf = [SYSFS_PATH, "class"].iter().collect();
 
-        for class in fs::read_dir(PATH)? {
+        for class in fs::read_dir(path)? {
             let devices = class?.path();
 
             for device in fs::read_dir(&devices)? {
@@ -73,11 +79,11 @@ impl Scanner {
 
     /// Scan the `/sys/block/` directory for devices and print their sysfs paths.
     fn scan_block(&mut self) -> io::Result<()> {
-        const PATH: &str = "/sys/block";
+        let path: PathBuf = [SYSFS_PATH, "block"].iter().collect();
 
-        for device in fs::read_dir(PATH)? {
+        for device in fs::read_dir(&path)? {
             let device_link = device?.path().read_link()?;
-            let device_path = Path::new(PATH).join(device_link).canonicalize()?;
+            let device_path = path.join(device_link).canonicalize()?;
 
             self.devices.insert(device_path.into());
         }
