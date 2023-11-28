@@ -94,6 +94,7 @@ mod tests {
     #[test]
     fn scan() -> io::Result<()> {
         let devices = Scanner::scan()?;
+        let devices: Vec<_> = devices.iter().map(Device::sysfs_path).collect();
         println!("{devices:#?}");
         Ok(())
     }
