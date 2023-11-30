@@ -39,8 +39,8 @@ impl Device {
         ancestors.max_by_key(|device| device.sysfs_path.components().count())
     }
 
-    /// Iterator over the children of this device in a collection of devices.
-    pub fn children<'a>(&'a self, devices: &'a [Device]) -> impl Iterator<Item = &'a Device> {
+    /// Iterator over the descendants of this device in a collection of devices.
+    pub fn descendants<'a>(&'a self, devices: &'a [Device]) -> impl Iterator<Item = &'a Device> {
         let others = devices.iter().filter(move |device| device != &self);
         others.filter(move |device| device.sysfs_path.starts_with(&self.sysfs_path))
     }

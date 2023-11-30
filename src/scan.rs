@@ -129,8 +129,6 @@ mod tests {
     }
 
     /// Check that asking for devices' parents does not error.
-    ///
-    /// Does not check that the parents are correct.
     #[test]
     fn parents() {
         let devices = Scanner::scan().expect("failed to scan");
@@ -168,37 +166,33 @@ mod tests {
         assert_eq!(parents, expected_parents);
     }
 
-    /// Check that asking for devices' children does not error.
-    ///
-    /// Does not check that the children are correct.
+    /// Check that asking for devices' descendants does not error.
     #[test]
-    fn children() {
+    fn descendants() {
         let devices = Scanner::scan().expect("failed to scan");
 
-        // Collect each device's children into a `BTreeSet` by only its `sysfs_path`.
+        // Collect each device's descendants into a `BTreeSet` by only its `sysfs_path`.
         // The set allows us to compare without worrying about the order of discovery.
-        let children: BTreeSet<_> = devices
+        let descendants: BTreeSet<_> = devices
             .iter()
             .map(|dev| {
-                let children = dev
-                    .children(&devices)
-                    .map(|child| child.sysfs_path.clone())
+                let descendants = dev
+                    .descendants(&devices)
+                    .map(|descendant| descendant.sysfs_path.clone())
                     .collect::<BTreeSet<_>>();
-                (dev.sysfs_path.clone(), children)
+                (dev.sysfs_path.clone(), descendants)
             })
             .collect();
 
-        // These are the expected children for each device by their paths relative to
+        // These are the expected descendants for each device by their paths relative to
         // `/sys/devices/`.
         let root_path: PathBuf = [SYSFS_PATH, "devices"].iter().collect();
-        let expected_children: BTreeSet<_> = [
+        let expected_descendants: BTreeSet<_> = [
             ("device_0", vec![]),
             (
                 "device_1",
                 vec![
                     "device_1/device_2",
-                    // FIXME: `Device::children` currently also gives all
-                    // descendants, but should only give direct children.
                     "device_1/device_2/device_3",
                     "device_1/device_2/device_4",
                 ],
@@ -214,15 +208,15 @@ mod tests {
             ("device_7", vec![]),
         ]
         .into_iter()
-        .map(|(path, children)| {
-            let children = children
+        .map(|(path, descendants)| {
+            let descendants = descendants
                 .into_iter()
-                .map(|child| root_path.join(child))
+                .map(|descendant| root_path.join(descendant))
                 .collect::<BTreeSet<_>>();
-            (root_path.join(path), children)
+            (root_path.join(path), descendants)
         })
         .collect();
 
-        assert_eq!(children, expected_children);
+        assert_eq!(descendants, expected_descendants);
     }
 }
