@@ -3,5 +3,8 @@ name = "devs"
 version = "0.1.0"
 edition = "2021"
 license = "MPL-2.0"
+description = "Linux device discovery"
+repository = "https://github.com/jwnrt/devs"
+keywords = ["linux", "device", "libudev", "sd-device"]
 
 [dependencies]
