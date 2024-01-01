@@ -19,7 +19,8 @@ const SYSFS_PATH: &str = if cfg!(test) {
 /// Connected device scanner.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Scanner {
-    devices: HashSet<Device>,
+    /// Paths in `/sys/devices` discovered by the scanner.
+    device_paths: HashSet<PathBuf>,
 }
 
 impl Scanner {
@@ -31,7 +32,12 @@ impl Scanner {
         scanner.scan_class()?;
         scanner.scan_block()?;
 
-        let devices = scanner.devices.into_iter().collect();
+        let devices = scanner
+            .device_paths
+            .into_iter()
+            .map(|path| path.into())
+            .collect();
+
         Ok(devices)
     }
 
@@ -46,7 +52,7 @@ impl Scanner {
                 let device_link = device?.path().read_link()?;
                 let device_path = devices.join(device_link).canonicalize()?;
 
-                self.devices.insert(device_path.into());
+                self.device_paths.insert(device_path);
             }
         }
 
@@ -70,7 +76,7 @@ impl Scanner {
                 let device_link = device_path.read_link()?;
                 let device_path = devices.join(device_link).canonicalize()?;
 
-                self.devices.insert(device_path.into());
+                self.device_paths.insert(device_path);
             }
         }
 
@@ -85,7 +91,7 @@ impl Scanner {
             let device_link = device?.path().read_link()?;
             let device_path = path.join(device_link).canonicalize()?;
 
-            self.devices.insert(device_path.into());
+            self.device_paths.insert(device_path);
         }
 
         Ok(())
