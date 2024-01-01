@@ -14,10 +14,23 @@
 pub(crate) mod device;
 pub(crate) mod scan;
 
+#[cfg(test)]
+pub(crate) mod testing;
+
 use std::io;
 
 #[doc(inline)]
 pub use device::Device;
+
+/// Path to Linux sysfs directory.
+///
+/// The path is changed for tests so we get consistent results regardless of
+/// where the tests are run.
+pub(crate) const SYSFS_PATH: &str = if cfg!(test) {
+    concat!(env!("CARGO_MANIFEST_DIR"), "/tests/sys")
+} else {
+    "/sys"
+};
 
 /// Scan the Linux sysfs for devices.
 pub fn scan() -> io::Result<Vec<Device>> {
